@@ -427,12 +427,13 @@ function firmarContrato(contratoId) {
             if (data.error) {
                 console.error("Error:", data.error);
             } else {
-                // Redirigir a la página de previsualización con la URL del PDF y el id del contrato
-                window.location.href = `firma_contrato_dashboard.html?pdf=${encodeURIComponent(data.ruta_pdf)}&id=${encodeURIComponent(contratoId)}`;
+                // Redirigir con el pdf_path para mostrar el PDF, y con id_contrato para marcarlo luego
+                window.location.href = `previsualizar_contrato_dash.html?pdf_path=${encodeURIComponent(data.ruta_pdf)}&id_contrato=${contratoId}`;
             }
         })
         .catch(error => console.error("Error al obtener la ruta del contrato:", error));
 }
+
 
 
 

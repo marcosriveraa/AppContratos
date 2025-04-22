@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsualización del Contrato</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pdf-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        embed {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .boton-firmar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .boton-firmar:hover {
+            background-color: #218838;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-contenido {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        canvas {
+            border: 1px solid black;
+            background: #f8f8f8;
+        }
+
+        .modal-botones {
+            margin-top: 10px;
+        }
+
+        .modal-botones button {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .guardar-firma {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .limpiar-firma {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .cerrar-modal {
+            background-color: gray;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pdf-container">
+        <embed id="pdfViewer" src="" type="application/pdf">
+        <p id="fallbackDownloadLink" style="display:none;">
+            <a href="" download>Descargar PDF</a>
+        </p>
+    </div>
+
+    <button class="boton-firmar" id="firmarBtn">Firmar Documento</button>
+
+    <!-- Modal de Firma -->
+    <div class="modal" id="modalFirma">
+        <div class="modal-contenido">
+            <h2>Firme aquí</h2>
+            <canvas id="canvasFirma" width="400" height="200"></canvas>
+            <div class="modal-botones">
+                <button class="guardar-firma" id="guardarFirma">Guardar Firma y Descargar</button>
+                <button class="limpiar-firma" id="limpiarFirma">Limpiar</button>
+                <button class="cerrar-modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
+    <script>
+        // Función para cargar el PDF generado en el embed
+        function cargarPDF() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileUrl = urlParams.get('pdf_path');
+            const contratoId = urlParams.get('id_contrato'); // ← recogemos el ID
+            console.log("ID del contrato:", contratoId); // Verificamos que se ha recogido correctamente
+            console.log("URL del PDF:", fileUrl); // Verificamos que se ha recogido correctamente
+            if (fileUrl) {
+                const pdfViewer = document.getElementById("pdfViewer");
+                pdfViewer.src = fileUrl;
+
+                const fallbackLink = document.getElementById("fallbackDownloadLink");
+                fallbackLink.style.display = "block";
+                fallbackLink.querySelector("a").href = fileUrl;
+
+                // Guardamos el ID en un input oculto o en JS para usarlo más tarde
+                if (contratoId) {
+
+                }
+            } else {
+                console.error("No se ha proporcionado la URL del archivo PDF.");
+            }
+        }
+
+
+        window.onload = cargarPDF;
+
+        // Mostrar el modal de firma
+        document.getElementById("firmarBtn").addEventListener("click", function () {
+            document.getElementById("modalFirma").style.display = "flex";
+        });
+
+        // Obtener el contexto del canvas para firmar
+        const canvas = document.getElementById("canvasFirma");
+        const ctx = canvas.getContext("2d");
+        let isDrawing = false;
+
+        // Establecer el grosor de la línea
+        ctx.lineWidth = 3;  // Aquí puedes ajustar el valor a tu gusto, por ejemplo, 3px
+
+        // Iniciar el dibujo
+        canvas.addEventListener("mousedown", function (e) {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        // Continuar el dibujo mientras el mouse esté presionado
+        canvas.addEventListener("mousemove", function (e) {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        // Detener el dibujo
+        canvas.addEventListener("mouseup", function () {
+            isDrawing = false;
+        });
+
+
+        // Limpiar el canvas
+        document.getElementById("limpiarFirma").addEventListener("click", function () {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Cerrar el modal
+        document.getElementById("cerrarModal").addEventListener("click", function () {
+            document.getElementById("modalFirma").style.display = "none";
+        });
+
+        // Guardar la firma y agregarla al PDF
+        // Guardar la firma y agregarla al PDF
+        document.getElementById("guardarFirma").addEventListener("click", async function () {
+            try {
+                console.log("Guardando firma...");
+                const firmaData = canvas.toDataURL();
+                const pdfUrl = new URLSearchParams(window.location.search).get('pdf_path');
+                const contratoId = new URLSearchParams(window.location.search).get('id_contrato');
+                const denominacion = new URLSearchParams(window.location.search).get('denominacion') || 'empresa';
+
+                if (!pdfUrl) {
+                    console.error("No se encontró la URL del PDF.");
+                    return;
+                }
+
+                console.log("Cargando PDF desde:", pdfUrl);
+                const existingPdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer());
+                console.log("PDF cargado correctamente.");
+
+                const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+                console.log("PDFDocument creado.");
+
+                const imgBytes = await fetch(firmaData).then(res => res.arrayBuffer());
+                const signatureImage = await pdfDoc.embedPng(imgBytes);
+                console.log("Firma embebida en el PDF.");
+
+                const pages = pdfDoc.getPages();
+                const lastPage = pages[pages.length - 1];
+                const { width, height } = lastPage.getSize();
+
+                const ahora = new Date();
+                const opciones = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+                const fechaHora = ahora.toLocaleString('es-ES', opciones);
+
+                lastPage.drawImage(signatureImage, {
+                    x: width - 460,
+                    y: height - 205,
+                    width: 100,
+                    height: 50,
+                });
+
+                const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                for (const page of pages) {
+                    const { width: pw, height: ph } = page.getSize();
+
+                    page.drawText(`Firmado digitalmente el ${fechaHora}`, {
+                        x: pw - 300,
+                        y: ph - 80,
+                        size: 8,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
+
+                    page.drawImage(signatureImage, {
+                        x: pw - 145,
+                        y: ph - 85,
+                        width: 80,
+                        height: 30,
+                    });
+                }
+
+                console.log("Firma y fecha añadidas a todas las páginas.");
+
+                // QR
+                const qrContainer = document.createElement("div");
+                qrContainer.style.position = "absolute";
+                qrContainer.style.left = "-9999px";
+                document.body.appendChild(qrContainer);
+
+                const datosQR = `Documento firmado digitalmente el ${fechaHora}`;
+                new QRCode(qrContainer, {
+                    text: datosQR,
+                    width: 50,
+                    height: 50,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const qrImg = qrContainer.querySelector("img");
+                if (!qrImg) {
+                    console.error("No se generó la imagen QR.");
+                    return;
+                }
+                const qrDataUrl = qrImg.src;
+                document.body.removeChild(qrContainer);
+
+                const qrBytes = await fetch(qrDataUrl).then(res => res.arrayBuffer());
+                const qrImage = await pdfDoc.embedPng(qrBytes);
+                console.log("QR embebido en el PDF.");
+
+                for (const page of pages) {
+                    const { width: pw } = page.getSize();
+                    page.drawImage(qrImage, {
+                        x: pw - 45,
+                        y: 5,
+                        width: 40,
+                        height: 40,
+                    });
+                }
+
+                console.log("QR añadido a todas las páginas.");
+
+                const pdfBytes = await pdfDoc.save();
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+                const downloadUrl = URL.createObjectURL(pdfBlob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `contrato_firmado_${denominacion.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+                link.click();
+
+                console.log("PDF firmado descargado.");
+
+                const formData = new FormData();
+                formData.append("id_contrato", contratoId);
+                formData.append("pdf", pdfBlob, `contrato_firmado_${denominacion.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+
+                // Asegúrate de enviar los datos correctamente
+                fetch('guardar_contratos_firmados.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json()) // Leer la respuesta como JSON
+                    .then(data => {
+                        console.log("Contrato actualizado correctamente en el servidor:", data);
+                        window.location.href='dashboard.php';
+                    })
+                    .catch(error => {
+                        console.error("Error al guardar el contrato firmado en el servidor:", error);
+                    });
+
+
+
+
+                document.getElementById("modalFirma").style.display = "none";
+            } catch (error) {
+                console.error("Error en el proceso de firmado:", error);
+            }
+        });
+
+
+    </script>
+
+</body>
+
+</html>

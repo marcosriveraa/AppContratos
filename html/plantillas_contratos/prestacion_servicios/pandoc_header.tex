@@ -1,0 +1,44 @@
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[margin=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{lastpage}
+\usepackage{parskip} % Espacio entre párrafos, sin sangría
+\usepackage{microtype} % Mejor interletraje y justificación
+\usepackage{setspace} % Para controlar el interlineado
+\usepackage{float}
+
+
+% CONFIGURACIÓN GENERAL
+\setlength{\parindent}{0pt} % Sin sangría en el inicio de párrafo
+\setstretch{1.2} % Interlineado un poco más amplio para mejor lectura
+
+\pagestyle{fancy}
+\fancyhf{}
+
+% Ajustar altura del encabezado para evitar solapamiento
+\setlength{\headheight}{50pt}
+
+% LOGO A LA IZQUIERDA
+\lhead{\includegraphics[height=1.8cm]{/var/www/html/plantillas_contratos/prestacion_servicios/atalaya.png}}
+% PIE DE PÁGINA
+\cfoot{Página \thepage\ de \pageref{LastPage}}
+
+% Espaciado antes del contenido
+\usepackage{titling}
+\setlength{\droptitle}{4cm}
+
+% Fix para listas ajustadas (Markdown)
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\begin{document}
+
+% Justificación automática, no necesitas el comando \justifying
+$body$
+
+
+
+\end{document}

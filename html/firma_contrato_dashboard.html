@@ -197,7 +197,11 @@
             const fechaHoraActual = new Date().toLocaleString(); // Fecha y hora en formato local
             // Añadir "_firmado" al nombre del archivo
             const nombreArchivoFirmado = pdfNombre.replace('pendientes_firma', '');
-            const datosQR = `Archivo: ${nombreArchivoFirmado}\n Fecha y Hora: ${fechaHoraActual}`;
+            const firmaBase64 = encodeURIComponent(firmaImagen);
+
+            // Creamos la URL con los datos del QR
+            const datosQR = encodeURIComponent(`archivo=${nombreArchivoFirmado}&fecha=${fechaHoraActual}&firma=${firmaBase64}`);
+            const urlDestino = `ver_qr.html?${datosQR}`;
             const qrCanvas = document.createElement("canvas");
             await QRCode.toCanvas(qrCanvas, datosQR, { width: 100, height: 100 }); // Usamos QRCode.toCanvas correctamente
             const qrImageUrl = qrCanvas.toDataURL("image/png");

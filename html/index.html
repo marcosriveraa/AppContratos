@@ -1,99 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generación de contratos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Generar Contrato</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .form-container {
+      max-width: 600px;
+      margin: 3rem auto;
+      padding: 2.5rem;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.1);
+    }
+    .form-logo {
+      max-width: 275px;
+      margin: 0 auto 1rem;
+      display: block;
+    }
+    .form-title {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
 
-    <style>
-        body {
-            font-family: 'Montserrat', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            flex-direction: column; /* Cambiado para apilar el h1 y el contenedor */
-        }
-        .container {
-            width: 80%; /* Ajusta según el tamaño que prefieras */
-        }
-        label {
-            font-style: bold;
-            font-size: 1.2em;
-        }
-    </style>
+    #generarcontrato {
+    background-color: #94161b;
+    border-color: #94161b;
+    color: white;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  #generarcontrato:hover {
+    background-color: #7a1216; /* un poco más oscuro al hacer hover */
+    border-color: #7a1216;
+  }
+  </style>
 </head>
-
 <body>
-    <h1 class="text-center mt-2">GENERACIÓN DE CONTRATOS V1</h1>
-    <div class="container">
-        <form action="guardar_contratos_firmados.php" method="POST" id="formulario">
-            <div class="alert alert-success" role="alert" style="display: none;">
-                <span class="alert-text"></span> 
-            </div>
-            <div class="alert alert-warning" role="alert" style="display: none;">
-                <span class="alert-text"></span> 
-              </div>
-            <div class="row mt-5">
-                <div class="col-2">
-                    <label for="calendario">Fecha del contrato:</label>
-                    <input type="text" id="calendario" class="form-control" readonly>
-                </div>
-                <div class="col-3">
-                    <label for="denominacion">Denominación Social:</label>
-                    <input type="text" id="denominacion" class="form-control" name="denominacion">
-                </div>
 
-                <div class="col-4">
-                    <label for="domicilio">Domicilio Fiscal:</label>
-                    <input type="text" id="domicilio" class="form-control">
-                </div>
+<div class="container">
+  <div class="form-container">
+    <!-- Logotipo centrado -->
+    <img src="atalaya.jpg" alt="Logo" class="form-logo">
+    <form action="generar_contrato.php" method="POST" id="formulario">
+      <!-- Alertas -->
+      <div class="alert alert-success d-none" role="alert">
+        <span class="alert-text"></span>
+      </div>
+      <div class="alert alert-warning d-none" role="alert">
+        <span class="alert-text"></span>
+      </div>
 
-                <div class="col-3">
-                    <label for="dni">Identificación Fiscal:</label>
-                    <input type="text" id="dni" class="form-control">
-                </div>
-            </div>
+      <div class="mb-3">
+        <label for="calendario" class="form-label">Fecha del contrato</label>
+        <input type="text" class="form-control" id="calendario" name="fecha" placeholder="Selecciona una fecha">
+      </div>
+      <div class="mb-3">
+        <label for="denominacion" class="form-label">Denominación Social</label>
+        <input type="text" id="denominacion" class="form-control" name="denominacion">
+      </div>
+      <div class="mb-3">
+        <label for="domicilio" class="form-label">Domicilio Fiscal</label>
+        <input type="text" id="domicilio" class="form-control" name="domicilio">
+      </div>
+      <div class="mb-3">
+        <label for="dni" class="form-label">Identificación Fiscal</label>
+        <input type="text" id="dni" class="form-control" name="identificacion">
+      </div>
+      <div class="mb-3">
+        <label for="nombre" class="form-label">Nombre del Apoderado</label>
+        <input type="text" id="nombre" class="form-control" name="nombre">
+      </div>
+      <div class="mb-3">
+        <label for="lugarnot" class="form-label">Lugar de la Notaría</label>
+        <input type="text" id="lugarnot" class="form-control" name="lugarnot">
+      </div>
+      <div class="mb-3">
+        <label for="notario" class="form-label">Notario</label>
+        <input type="text" id="notario" class="form-control" name="notario">
+      </div>
+      <div class="mb-4">
+        <label for="numprotocolo" class="form-label">Número de Protocolo</label>
+        <input type="text" id="numprotocolo" class="form-control" name="numprotocolo">
+      </div>
 
-            <div class="row mt-3">
+      <!-- Botones -->
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn" id="generarcontrato">Generar Contrato</button>
 
-                <div class="col-3">
-                    <label for="nombre">Nombre del Apoderado:</label>
-                    <input type="text" id="nombre" class="form-control">
-                </div>
-
-                <div class="col-3">
-                    <label for="lugarnot">Lugar de la Notaria:</label>
-                    <input type="text" id="lugarnot" class="form-control">
-                </div>
-
-                <div class="col-3">
-                    <label for="notario">Notario:</label>
-                    <input type="text" id="notario" class="form-control">
-                </div>
-
-                <div class="col-3">
-                    <label for="numprotocolo">Numero de Protocolo:</label>
-                    <input type="text" id="numprotocolo" class="form-control">
-                </div>
-
-                <div class="row mt-2">
-                    <div class="col-5">
-                        <button type="submit" class="btn btn-success" id="generarcontrato">Generar Contrato</button>
-                        <button class="btn btn-success" id="rellenarCampos">Prueba</button>
-                    </div>
-                </div>
-        </form>
-    </div>
-
+        <button type="button" class="btn btn-outline-secondary" id="rellenarCampos">Rellenar Prueba</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -106,16 +112,23 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
 </body>
 <script>
-    // Script para rellenar los campos con datos ficticios
-    document.getElementById('rellenarCampos').addEventListener('click', () => {
-            document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
-            document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
-            document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
-            document.getElementById('dni').value = 'A12345678'; // DNI ficticio
-            document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
-            document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
-            document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
-            document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
-        });
+  // Script para rellenar los campos con datos ficticios
+  document.getElementById('rellenarCampos').addEventListener('click', () => {
+      document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
+      document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
+      document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
+      document.getElementById('dni').value = 'A12345678'; // DNI ficticio
+      document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
+      document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
+      document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
+      document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
+  });
+
+  // Limpia los campos del formulario después de enviarlo
+  document.getElementById('generarcontrato').addEventListener('click', (event) => {
+      let formulario = document.getElementById('formulario');
+      formulario.reset(); // Resetea el formulario
+  });
 </script>
+
 </html>

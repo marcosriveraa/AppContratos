@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos del QR</title>
+</head>
+<body>
+    <h1>Datos del QR</h1>
+    <p><strong>Archivo:</strong> <span id="archivo"></span></p>
+    <p><strong>Fecha y Hora:</strong> <span id="fecha"></span></p>
+    <h2>Firma:</h2>
+    <img id="firmaImagen" alt="Firma digital" style="max-width: 300px; border: 1px solid #000;"/>
+
+    <script>
+        // Obtener parámetros de la URL
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById("archivo").textContent = params.get("archivo") || "No disponible";
+        document.getElementById("fecha").textContent = params.get("fecha") || "No disponible";
+
+        // Obtener la firma en Base64 y mostrarla
+        const firmaBase64 = params.get("firma");
+        if (firmaBase64) {
+            document.getElementById("firmaImagen").src = decodeURIComponent(firmaBase64);
+        } else {
+            document.getElementById("firmaImagen").alt = "Firma no disponible";
+        }
+    </script>
+</body>
+</html>

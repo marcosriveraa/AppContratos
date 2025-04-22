@@ -1,39 +1,34 @@
 <?php
-require('fpdf.php');
-require('fpdi.php');
+require_once('fpdf/fpdf.php');
+require_once('fpdi/src/autoload.php');  // Si usas FPDI para manejar PDFs existentes
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Obtener los datos enviados por POST
+$firmaBase64 = $_POST['firma'];  // Firma en formato Base64
+$pdfUrl = $_POST['pdf_path'];    // Ruta al archivo PDF original
 
-if (!isset($_POST["pdf"]) || !isset($_POST["firma"])) {
-    echo json_encode(["error" => "No se recibió PDF o firma"]);
-    exit;
-}
+// Decodificar la firma Base64
+list($type, $data) = explode(';', $firmaBase64);
+list(, $data)      = explode(',', $data);
+$firmaData = base64_decode($data);
 
-$pdfOriginal = $_POST["pdf"];
-$firmaBase64 = $_POST["firma"];
+// Guardar la firma en un archivo temporal
+$tempFirmaFile = tempnam(sys_get_temp_dir(), 'firma');
+file_put_contents($tempFirmaFile, $firmaData);
 
-// Decodificar la imagen de la firma
-$firmaImagen = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $firmaBase64));
+// Crear un objeto FPDI para trabajar con el PDF original
+$pdf = new \setasign\Fpdi\Fpdi();
+$pageCount = $pdf->setSourceFile($pdfUrl);  // Cargar el PDF original
 
-// Guardar la firma como archivo temporal
-$firmaPath = "firmas/firma_temp.png";
-file_put_contents($firmaPath, $firmaImagen);
+// Importar la primera página del PDF
+$templateId = $pdf->importPage(1);
+$pdf->addPage();
+$pdf->useTemplate($templateId);
 
-// Crear nuevo PDF con FPDI
-$pdf = new FPDI();
-$pdf->setSourceFile($pdfOriginal);
-$template = $pdf->importPage(1);
-$pdf->AddPage();
-$pdf->useTemplate($template, 0, 0, 210);
+// Agregar la firma sobre el PDF
+$pdf->Image($tempFirmaFile, 50, 200, 100);  // Posicionar la firma en (50, 200) y tamaño 100mm de ancho
 
-// Insertar la firma en el PDF (coordenadas X, Y y tamaño ajustable)
-$pdf->Image($firmaPath, 100, 250, 50, 20);
-
-// Guardar el nuevo PDF firmado
-$nuevoPdfPath = "firmados/contrato_firmado.pdf";
-$pdf->Output($nuevoPdfPath, "F");
-
-// Devolver la nueva ruta del PDF firmado
-echo json_encode(["success" => true, "nuevo_pdf" => $nuevoPdfPath]);
+// Enviar el PDF firmado al cliente
+header('Content-Type: application/pdf');
+header('Content-Disposition: attachment; filename="contrato_firmado.pdf"');
+$pdf->Output('I');  // Enviar el PDF al navegador para descargarlo
 ?>
