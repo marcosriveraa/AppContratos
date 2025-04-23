@@ -112,9 +112,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute();
         error_log("Contrato guardado en la base de datos.");
         $lastInsertId = $pdo->lastInsertId();
-        // Redirigir a la previsualización
-        // Redirigir a la previsualización con el ID generado en la URL
-        header("Location: previsualizar_contrato.html?pdf_path=" . urlencode($final_pdf) . "&id_contrato=" . $lastInsertId);
+        
+        // Concatenar el nombre del archivo PDF y el ID del contrato
+        $concat_str = $filename_pdf . $lastInsertId;
+
+        
+        $file_hash = md5($concat_str);
+        header("Location: previsualizar_contrato.html?pdf_path=" . urlencode($final_pdf) . "&id_contrato=" . $lastInsertId . "&file_hash=" . $file_hash);
         exit;
     } catch (PDOException $e) {
         error_log("Error al guardar en la base de datos: " . $e->getMessage());
