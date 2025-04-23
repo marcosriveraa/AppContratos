@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Previsualización del Contrato</title>
+    <script src="https://cdn.jsdelivr.net/npm/js-md5@0.7.3/build/md5.min.js"></script>
     <style>
         body,
         html {
@@ -29,7 +30,7 @@
         }
 
         .boton-firmar {
-            position: absolute;
+            /*position: absolute; */
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -99,6 +100,21 @@
             background-color: gray;
             color: white;
         }
+
+        .boton-cancel {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .boton-cancel:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 
@@ -110,7 +126,10 @@
         </p>
     </div>
 
-    <button class="boton-firmar" id="firmarBtn">Firmar Documento</button>
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;">
+        <button class="boton-firmar" id="firmarBtn">Firmar Documento</button>
+        <button class="boton-cancel" id="cancelboton">Cancelar Firma</button>
+    </div>
 
     <!-- Modal de Firma -->
     <div class="modal" id="modalFirma">
@@ -127,8 +146,8 @@
 
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-md5/0.7.3/md5.min.js"></script>
     <script>
         // Función para cargar el PDF generado en el embed
         function cargarPDF() {
@@ -137,6 +156,7 @@
             const contratoId = urlParams.get('id_contrato'); // ← recogemos el ID
             console.log("ID del contrato:", contratoId); // Verificamos que se ha recogido correctamente
             console.log("URL del PDF:", fileUrl); // Verificamos que se ha recogido correctamente
+
             if (fileUrl) {
                 const pdfViewer = document.getElementById("pdfViewer");
                 pdfViewer.src = fileUrl;
@@ -144,16 +164,10 @@
                 const fallbackLink = document.getElementById("fallbackDownloadLink");
                 fallbackLink.style.display = "block";
                 fallbackLink.querySelector("a").href = fileUrl;
-
-                // Guardamos el ID en un input oculto o en JS para usarlo más tarde
-                if (contratoId) {
-
-                }
             } else {
                 console.error("No se ha proporcionado la URL del archivo PDF.");
             }
         }
-
 
         window.onload = cargarPDF;
 
@@ -190,7 +204,6 @@
             isDrawing = false;
         });
 
-
         // Limpiar el canvas
         document.getElementById("limpiarFirma").addEventListener("click", function () {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -201,28 +214,48 @@
             document.getElementById("modalFirma").style.display = "none";
         });
 
-        // Guardar la firma y agregarla al PDF
+
         // Guardar la firma y agregarla al PDF
         document.getElementById("guardarFirma").addEventListener("click", async function () {
             try {
                 console.log("Guardando firma...");
-                const firmaData = canvas.toDataURL();
-                const pdfUrl = new URLSearchParams(window.location.search).get('pdf_path');
-                const contratoId = new URLSearchParams(window.location.search).get('id_contrato');
-                const denominacion = new URLSearchParams(window.location.search).get('denominacion') || 'empresa';
 
-                if (!pdfUrl) {
-                    console.error("No se encontró la URL del PDF.");
-                    return;
-                }
+                // Obtener los parámetros de la URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const pdfUrl = urlParams.get('pdf_path');
+                const contratoId = urlParams.get('id_contrato');
+                const denominacion = urlParams.get('denominacion') || 'empresa';
+                const pdfHash = urlParams.get('file_hash'); // ← obtenemos el hash
 
                 console.log("Cargando PDF desde:", pdfUrl);
+                console.log("ID del contrato:", contratoId);
+                console.log("Hash del PDF:", pdfHash);
+
+                // Generar el CRM a partir del contrato ID y la fecha actual
+                const ahora = new Date();
+                const crm = md5(contratoId + ahora.toISOString());  // Generamos el CRM como un hash del ID y fecha
+
+                console.log("CRM generado:", crm); // Muestra el CRM en la consola
+
+                // Generar el nombre del PDF y concatenarlo con el ID del contrato para generar el hash
+                const filenamePdf = pdfUrl.split('/').pop(); // Obtener el nombre del archivo PDF
+                const generatedHash = md5(filenamePdf + contratoId); // Generar el hash a partir del nombre del PDF y el ID del contrato
+
+                // Verificar si el hash coincide
+                if (generatedHash !== pdfHash) {
+                    alert("Error: El documento ha sido modificado y no es válido para firmar.");
+                    console.error("El hash generado no coincide con el proporcionado.");
+                    return; // Detener el proceso si los hashes no coinciden
+                }
+
+                // Proceder con la firma si los hashes coinciden
                 const existingPdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer());
                 console.log("PDF cargado correctamente.");
 
                 const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
                 console.log("PDFDocument creado.");
 
+                const firmaData = canvas.toDataURL();
                 const imgBytes = await fetch(firmaData).then(res => res.arrayBuffer());
                 const signatureImage = await pdfDoc.embedPng(imgBytes);
                 console.log("Firma embebida en el PDF.");
@@ -231,7 +264,6 @@
                 const lastPage = pages[pages.length - 1];
                 const { width, height } = lastPage.getSize();
 
-                const ahora = new Date();
                 const opciones = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
                 const fechaHora = ahora.toLocaleString('es-ES', opciones);
 
@@ -246,23 +278,34 @@
                 for (const page of pages) {
                     const { width: pw, height: ph } = page.getSize();
 
-                    page.drawText(`Firmado digitalmente el ${fechaHora}`, {
-                        x: pw - 300,
-                        y: ph - 80,
+                    // Dibujar la fecha y la firma en las páginas
+                    page.drawText(`Firmado digitalmente el ${fechaHora}hrs`, {
+                        x: pw - 375, 
+                        y: ph - 70,   
                         size: 8,
                         font: font,
                         color: PDFLib.rgb(0, 0, 0),
                     });
 
                     page.drawImage(signatureImage, {
-                        x: pw - 145,
-                        y: ph - 85,
+                        x: pw - 212, 
+                        y: ph - 75, 
                         width: 80,
                         height: 30,
                     });
+
+                    
+                    page.drawText(`CRC: ${crm}`, {
+                        x: pw - 375, 
+                        y: ph - 85, 
+                        size: 8,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
                 }
 
-                console.log("Firma y fecha añadidas a todas las páginas.");
+
+                console.log("Firma, fecha y CRM añadidos a todas las páginas.");
 
                 // QR
                 const qrContainer = document.createElement("div");
@@ -273,8 +316,8 @@
                 const datosQR = `Documento firmado digitalmente el ${fechaHora}`;
                 new QRCode(qrContainer, {
                     text: datosQR,
-                    width: 50,
-                    height: 50,
+                    width: 75,
+                    height: 75,
                     correctLevel: QRCode.CorrectLevel.H
                 });
 
@@ -293,10 +336,10 @@
                 console.log("QR embebido en el PDF.");
 
                 for (const page of pages) {
-                    const { width: pw } = page.getSize();
+                    const { width: pw, height: ph } = page.getSize();
                     page.drawImage(qrImage, {
-                        x: pw - 45,
-                        y: 5,
+                        x: pw - 120,
+                        y: ph - 85,
                         width: 40,
                         height: 40,
                     });
@@ -333,9 +376,6 @@
                         console.error("Error al guardar el contrato firmado en el servidor:", error);
                     });
 
-
-
-
                 document.getElementById("modalFirma").style.display = "none";
             } catch (error) {
                 console.error("Error en el proceso de firmado:", error);
@@ -343,7 +383,43 @@
         });
 
 
+        document.getElementById("cancelboton").addEventListener("click", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileUrl = urlParams.get('pdf_path');
+            const idContrato = urlParams.get('id_contrato'); // Aquí se obtiene el id del contrato
+
+            console.log("URL del PDF a eliminar:", fileUrl);
+            console.log("ID del contrato:", idContrato);
+
+            if (!fileUrl || !idContrato) {
+                alert("No se encontró el archivo PDF o el ID del contrato.");
+                return;
+            }
+
+            fetch('borrar_pdf_pendiente.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    ruta: fileUrl,        // Se envía la ruta del archivo
+                    id_contrato: idContrato // Se envía el id del contrato
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.mensaje);
+                    // Redirige o simplemente cierra el modal y limpia la vista
+                    window.location.href = "index.html";
+                })
+                .catch(error => {
+                    console.error("Error al intentar eliminar el PDF:", error);
+                });
+        });
+
+
     </script>
+
 
 </body>
 
