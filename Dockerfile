@@ -3,6 +3,9 @@ FROM php:8.2-apache
 # Habilitar mod_rewrite para Apache
 RUN a2enmod rewrite
 
+# Establecer ServerName para evitar advertencias
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Instalar las extensiones PDO y PDO_MySQL
 RUN docker-php-ext-install pdo pdo_mysql
 
@@ -24,6 +27,9 @@ RUN chmod +x /init.sh
 
 # Copiar el código de la página web
 COPY html /var/www/html
+
+# Copiar archivo de configuración personalizado
+COPY html/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Otorgar permisos correctos
 RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html

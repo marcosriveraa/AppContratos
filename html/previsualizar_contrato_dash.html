@@ -286,18 +286,23 @@
 
                 console.log("Firma, fecha y CRM añadidos a todas las páginas.");
 
-                // QR
+                const combinedData = contratoId;
+
+                // Genera la URL con el parámetro único
+                const urlFirma = `comprobar_documento.php?data=${encodeURIComponent(combinedData)}`;  // Usar encodeURIComponent para evitar codificación innecesaria
+
+                // Crea el contenedor para el QR
                 const qrContainer = document.createElement("div");
                 qrContainer.style.position = "absolute";
                 qrContainer.style.left = "-9999px";
                 document.body.appendChild(qrContainer);
 
-                const datosQR = `Documento firmado digitalmente el ${fechaHora}`;
+                // Genera el código QR con un tamaño reducido
                 new QRCode(qrContainer, {
-                    text: datosQR,
-                    width: 75,
+                    text: urlFirma,  // URL con el parámetro único
+                    width: 75,       // Tamaño más pequeño para mejorar la escaneabilidad
                     height: 75,
-                    correctLevel: QRCode.CorrectLevel.H
+                    correctLevel: QRCode.CorrectLevel.L  // Usar un nivel de corrección bajo para mayor compresión (si es suficiente)
                 });
 
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -310,6 +315,7 @@
                 const qrDataUrl = qrImg.src;
                 document.body.removeChild(qrContainer);
 
+                // Obtener los bytes de la imagen del QR y embebido en el PDF
                 const qrBytes = await fetch(qrDataUrl).then(res => res.arrayBuffer());
                 const qrImage = await pdfDoc.embedPng(qrBytes);
                 console.log("QR embebido en el PDF.");
@@ -319,8 +325,8 @@
                     page.drawImage(qrImage, {
                         x: pw - 120,
                         y: ph - 85,
-                        width: 40,
-                        height: 40,
+                        width: 42,  // Ajustar tamaño del QR en el PDF para optimizar su visibilidad
+                        height: 42,
                     });
                 }
 
