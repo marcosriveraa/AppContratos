@@ -7,12 +7,11 @@ if (!isset($_GET['data'])) {
     exit;
 }
 
-// Decodificamos el parámetro base64
-$encodedData = $_GET['data'];
-$decodedData = base64_decode($encodedData);
+// Tomamos el parámetro directamente como ID
+$contratoId = intval($_GET['data']); // Nos aseguramos de que sea un número entero
 
-// En este caso, asumimos que solo se pasa el ID (sin separadores ni más datos)
-$contratoId = intval($decodedData); // Nos aseguramos de que sea un número entero
+// Mostramos el ID en la consola del navegador
+echo "<script>console.log('ID recibido: " . htmlspecialchars($contratoId) . "');</script>";
 
 // Consultamos el contrato por ID
 $stmt = $pdo->prepare("SELECT * FROM contratos WHERE id = :id");
@@ -24,7 +23,6 @@ if (!$contrato) {
     exit;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -52,7 +50,6 @@ if (!$contrato) {
                     <?php echo htmlspecialchars($contrato['fecha_firma'] ?? 'No disponible'); ?>
                 </p>
                 <a href="<?php echo htmlspecialchars($contrato['ruta_pdf']); ?>" class="btn btn-success mt-3" download>📄 Descargar PDF</a>
-                <a href="dashboard.php" class="btn btn-outline-secondary mt-3 ms-2">Volver al Dashboard</a>
             </div>
         </div>
     </div>
@@ -62,4 +59,3 @@ if (!$contrato) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

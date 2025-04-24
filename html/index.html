@@ -30,16 +30,16 @@
     }
 
     #generarcontrato {
-    background-color: #94161b;
-    border-color: #94161b;
-    color: white;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-  }
+      background-color: #94161b;
+      border-color: #94161b;
+      color: white;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
 
-  #generarcontrato:hover {
-    background-color: #7a1216; /* un poco más oscuro al hacer hover */
-    border-color: #7a1216;
-  }
+    #generarcontrato:hover {
+      background-color: #7a1216; /* un poco más oscuro al hacer hover */
+      border-color: #7a1216;
+    }
   </style>
 </head>
 <body>
@@ -56,6 +56,15 @@
       <div class="alert alert-warning d-none" role="alert">
         <span class="alert-text"></span>
       </div>
+
+      <div class="mb-3">
+        <label for="plantilla" class="form-label">Plantilla de Contrato</label>
+        <select id="plantilla" name="plantilla" class="form-select" required>
+          <option value="">Cargando plantillas...</option>
+        </select>
+      </div>
+      <input type="hidden" name="ruta_plantilla" id="ruta_plantilla">
+      
 
       <div class="mb-3">
         <label for="calendario" class="form-label">Fecha del contrato</label>
@@ -89,40 +98,81 @@
         <label for="numprotocolo" class="form-label">Número de Protocolo</label>
         <input type="text" id="numprotocolo" class="form-control" name="numprotocolo">
       </div>
-
       <!-- Botones -->
       <div class="d-grid gap-2">
         <button type="submit" class="btn" id="generarcontrato">Generar Contrato</button>
-
         <button type="button" class="btn btn-outline-secondary" id="rellenarCampos">Rellenar Prueba</button>
       </div>
     </form>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
-</body>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="script.js"></script>
+<script src="config.js"></script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
+
 <script>
   // Script para rellenar los campos con datos ficticios
   document.getElementById('rellenarCampos').addEventListener('click', () => {
-      document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
-      document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
-      document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
-      document.getElementById('dni').value = 'A12345678'; // DNI ficticio
-      document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
-      document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
-      document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
-      document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
+    document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
+    document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
+    document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
+    document.getElementById('dni').value = 'A12345678'; // DNI ficticio
+    document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
+    document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
+    document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
+    document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const botonFormulario = document.getElementById("rellenarCampos");
+
+    if (CONFIG.mostrarFormulario === 1) {
+        botonFormulario.style.display = "inline-block"; // o "block"
+    } else {
+        botonFormulario.style.display = "none";
+    }
+
+    const select = document.getElementById('plantilla');
+
+    // Cargar las plantillas desde el servidor
+    fetch('cargar_plantillas.php')
+      .then(response => response.json())
+      .then(data => {
+        select.innerHTML = '<option value="">Selecciona una plantilla...</option>';
+        data.forEach(plantilla => {
+          const option = document.createElement('option');
+          option.value = plantilla.ruta; // Usamos la ruta como valor
+          option.textContent = plantilla.nombre;
+          select.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error al cargar plantillas:', error);
+        select.innerHTML = '<option value="">Error al cargar</option>';
+      });
+
+    const formulario = document.getElementById('formulario');
+    formulario.addEventListener('submit', function (e) {
+      const rutaPlantilla = select.value;
+      if (!rutaPlantilla) {
+        e.preventDefault();  // Evitar el envío si no se selecciona una plantilla
+        alert('Por favor, selecciona una plantilla.');
+        return;
+      }
+      document.getElementById('ruta_plantilla').value = rutaPlantilla;
+    });
   });
 </script>
 
+</body>
 </html>

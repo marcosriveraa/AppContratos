@@ -126,7 +126,8 @@
         </p>
     </div>
 
-    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;">
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;"
+        id="botonesAccion">
         <button class="boton-firmar" id="firmarBtn">Firmar Documento</button>
         <button class="boton-cancel" id="cancelboton">Cancelar Firma</button>
     </div>
@@ -149,27 +150,57 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-md5/0.7.3/md5.min.js"></script>
     <script>
-        // Función para cargar el PDF generado en el embed
         function cargarPDF() {
             const urlParams = new URLSearchParams(window.location.search);
             const fileUrl = urlParams.get('pdf_path');
-            const contratoId = urlParams.get('id_contrato'); // ← recogemos el ID
-            console.log("ID del contrato:", contratoId); // Verificamos que se ha recogido correctamente
-            console.log("URL del PDF:", fileUrl); // Verificamos que se ha recogido correctamente
+            const contratoId = urlParams.get('id_contrato');
+
+            console.log("ID del contrato:", contratoId);
+            console.log("URL del PDF:", fileUrl);
 
             if (fileUrl) {
-                const pdfViewer = document.getElementById("pdfViewer");
-                pdfViewer.src = fileUrl;
+                // Comprobamos si el archivo realmente existe
+                fetch(fileUrl, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            const pdfViewer = document.getElementById("pdfViewer");
+                            pdfViewer.src = fileUrl;
 
-                const fallbackLink = document.getElementById("fallbackDownloadLink");
-                fallbackLink.style.display = "block";
-                fallbackLink.querySelector("a").href = fileUrl;
+                            const fallbackLink = document.getElementById("fallbackDownloadLink");
+                            fallbackLink.style.display = "block";
+                            fallbackLink.querySelector("a").href = fileUrl;
+                        } else {
+                            lanzar404();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error al verificar el PDF:", error);
+                        lanzar404();
+                    });
             } else {
                 console.error("No se ha proporcionado la URL del archivo PDF.");
+                lanzar404();
             }
         }
 
-        window.onload = cargarPDF;
+        function lanzar404() {
+            console.log("Redirigiendo a 404");
+
+            // Redirigir a un error 404 para que el servidor maneje la redirección
+            window.location.href = "/non-existent-path"; // Ruta inexistente para generar el error 404
+        }
+
+        // Detectar cambios en la URL usando el evento popstate
+        document.addEventListener("popstate", () => {
+            console.log("URL cambiada")
+            cargarPDF();
+        });
+
+        // Ejecutar cargarPDF al cargar la página
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarPDF();
+        });
+
 
         // Mostrar el modal de firma
         document.getElementById("firmarBtn").addEventListener("click", function () {
@@ -306,11 +337,10 @@
 
 
 
+                const urlFirma = `https://test1.atalaya.it/comprobar_documento.php?data=${contratoId}`;
 
-                const combinedData = contratoId; 
 
-                // Genera la URL con el parámetro único
-                const urlFirma = `comprobar_documento.php?data=${encodeURIComponent(combinedData)}`;  // Usar encodeURIComponent para evitar codificación innecesaria
+
 
                 // Crea el contenedor para el QR
                 const qrContainer = document.createElement("div");

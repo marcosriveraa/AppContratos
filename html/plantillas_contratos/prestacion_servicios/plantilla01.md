@@ -397,23 +397,3 @@ Las Partes, con expresa renuncia a cualquier otro fuero que pudiera corresponder
 
 Y en prueba de conformidad con cuanto antecede, las Partes, en la representación que ostentan, firman el presente documento, en el lugar y fecha al comienzo indicados.
 <div style="page-break-before: always;"></div>
-
-&nbsp;
-
-&nbsp;
-
-&nbsp;
-
-&nbsp;
-
-**REVISADO DPTO. DE COMPRAS**
-
-**ATALAYA RIOTINTO MINERA, S.L.U.** {{denominacion}}
-
-&nbsp;
-
-**Firma:**  
-\underline{\hspace{5cm}}
-
-P.P. D. Alberto Arsenio Lavandeira Adán          P.P.D. {{apoderado}}
-

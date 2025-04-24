@@ -166,6 +166,13 @@ main h1 {
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#" id="editarPlantillas">
+                            <i class="bi bi-pencil-square"></i>
+                            Editar Plantillas
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a class="nav-link" id="recargar">
                             <i class="bi bi-box-door-closed"></i>
                             Recargar
@@ -255,14 +262,59 @@ main h1 {
             </tr>
         </thead>
         <tbody>
-
         </tbody>
     </table>
         </div>
     </div>
-            </div>
+    <div class="row mt-4" id="dynamicEditor" style="display: none;">
+  <div class="col-md-9">
 
+    <!-- Botón para crear nueva plantilla -->
+    <div class="d-flex justify-content-end mb-2">
+      <button class="btn btn-success" id="btnNuevaPlantilla" data-bs-toggle="modal" data-bs-target="#modalNuevaPlantilla">
+        <i class="bi bi-plus-lg"></i> Nueva Plantilla
+      </button>
+    </div>
 
+    <!-- Tabla de plantillas -->
+    <table id="plantillastable" class="table table-bordered table-striped mt-2">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Contrato</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- Modal para añadir nueva plantilla -->
+<div class="modal fade" id="modalNuevaPlantilla" tabindex="-1" aria-labelledby="modalNuevaPlantillaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formNuevaPlantilla">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNuevaPlantillaLabel">Crear Nueva Plantilla</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="nombrePlantilla" class="form-label">Nombre de la Plantilla</label>
+            <input type="text" class="form-control" id="nombrePlantilla" name="nombre" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="guardarPlantilla">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
         </main>
     </div>
 </div>
@@ -350,6 +402,42 @@ $(document).ready(function() {
         });
     });
 
+    $(document).ready(function() {
+        $('#plantillastable').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron registros",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros en total)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "previous": "Anterior",
+                    "next": "Siguiente",
+                    "last": "Último"
+                }
+            },
+            "drawCallback": function(settings) {
+                var api = this.api();
+                var info = api.page.info();
+                
+                // Deshabilitar el botón "Anterior" si estamos en la primera página
+                if (info.page === 0) {
+                    $('.paginate_button.previous').addClass('disabled');
+                } else {
+                    $('.paginate_button.previous').removeClass('disabled');
+                }
+
+                // Deshabilitar el botón "Siguiente" si estamos en la última página
+                if (info.page === info.pages - 1) {
+                    $('.paginate_button.next').addClass('disabled');
+                } else {
+                    $('.paginate_button.next').removeClass('disabled');
+                }
+            }
+        });
+    });
     document.addEventListener("DOMContentLoaded", function () {
     const btnContratosFirmados = document.getElementById('contratosfirmados');
     const btnContratosPorFirmar = document.getElementById('contratosporfirmar');
@@ -365,12 +453,23 @@ $(document).ready(function() {
         btnContratosFirmados.classList.remove('active');
         btnContratosPorFirmar.classList.remove('active');
         btnDashboard.classList.remove('active');
-    }
+        dynamicEditor.style.display = 'none';
+        btnEditarPlantillas.classList.remove('active');
 
+    }
     btnrecargar.addEventListener('click', function () {
         window.location.reload();
     });
 
+    const btnEditarPlantillas = document.getElementById('editarPlantillas');
+    const dynamicEditor = document.getElementById('dynamicEditor');
+
+btnEditarPlantillas.addEventListener('click', function () {
+    ocultarTodosLosContenidos();
+    cargarPlantilla(); // Cargar las plantillas al hacer clic
+    dynamicEditor.style.display = 'block';
+    btnEditarPlantillas.classList.add('active');
+});
     // Evento para "Contratos Firmados"
     btnContratosFirmados.addEventListener('click', function () {
         ocultarTodosLosContenidos(); // Ocultar los demás contenidos
@@ -402,10 +501,8 @@ function cargarContratos() {
                 console.error(data.error);
                 return;
             }
-
             let table = $("#contractsTable").DataTable();
-            table.clear().draw(); // Limpiar datos previos
-
+            table.clear().draw();
             data.forEach(contrato => {
                 table.row.add([
                     contrato.id,
@@ -418,6 +515,59 @@ function cargarContratos() {
         })
         .catch(error => console.error("Error al cargar los contratos:", error));
 }
+
+const botonGuardar = document.getElementById("guardarPlantilla");
+
+botonGuardar.addEventListener("click", () => {
+    const inputNombre = document.getElementById("nombrePlantilla"); // Asegúrate de tener este input en el modal
+    const nombre = inputNombre.value.trim();
+
+    if (!nombre) {
+        alert("El nombre de la plantilla no puede estar vacío.");
+        return;
+    }
+
+    // Depuración: Verifica el valor de 'nombre'
+    console.log("Nombre de la plantilla:", nombre);
+
+    fetch("crear_plantilla.php", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json" // Cambiar a JSON
+    },
+    body: JSON.stringify({
+        nombre: nombre
+    }) // Convertir los datos a JSON
+})
+.then(response => {
+    // Depuración: Verifica el contenido de la respuesta
+    return response.text(); // Usar text() en lugar de json()
+})
+.then(text => {
+    console.log("Respuesta del servidor (raw):", text); // Ver el contenido completo de la respuesta
+    try {
+        const data = JSON.parse(text); // Intentamos parsear el contenido como JSON
+        console.log("Respuesta parseada como JSON:", data);
+        if (data.success) {
+            alert("Plantilla creada correctamente.");
+            cargarPlantilla(); // Recargar tabla con nuevas plantillas
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevaPlantilla'));
+            modal.hide();
+            inputNombre.value = ""; // Limpiar campo
+        } else {
+            alert(data.error || "Ha ocurrido un error.");
+        }
+    } catch (error) {
+        console.error("Error al parsear la respuesta JSON:", error);
+        alert("Error al crear la plantilla. Respuesta del servidor no válida.");
+    }
+})
+.catch(error => {
+    console.error("Error al crear plantilla:", error);
+    alert("Error al crear la plantilla.");
+});
+});
+
 
 
 function firmarContrato(contratoId) {
@@ -463,6 +613,67 @@ function cargarContratospendientes() {
         })
         .catch(error => console.error("Error al cargar los contratos:", error));
 }
+
+function cargarPlantilla() {
+    fetch("cargar_plantillas.php")
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+            let table = $("#plantillastable").DataTable();
+            table.clear().draw(); // Limpiar datos previos
+            data.forEach(plantilla => {
+                table.row.add([
+                    plantilla.id,
+                    plantilla.nombre,
+                    `<button class="btn btn-sm btn-primary" onclick="editarPlantilla(${plantilla.id})">Editar</button>`
+                ]).draw(false);
+            });
+            console.log(data);
+        })
+        .catch(error => console.error("Error al cargar las plantillas:", error));
+}
+
+function editarPlantilla(id) {
+    // Realizamos la petición para obtener la ruta de la plantilla
+    fetch("obtener_ruta_plantilla.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id: id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Error al obtener la ruta: " + data.error);
+            return;
+        }
+
+        // Enviar la ruta obtenida al servidor de forma segura usando sesión o token
+        fetch("cargar_editor.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ ruta: data.ruta })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert("Error al cargar el editor: " + data.error);
+                return;
+            }
+            // Redirigir al editor de manera privada (con datos en sesión o token)
+            window.location.href = "editor.php";
+        })
+        .catch(error => console.error("Error al redirigir al editor:", error));
+    })
+    .catch(error => console.error("Error al obtener la ruta de la plantilla:", error));
+}
+
 </script>
 
 </body>

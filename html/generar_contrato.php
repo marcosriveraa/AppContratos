@@ -1,127 +1,127 @@
 <?php
-// Incluir el archivo de conexión a la base de datos
+// Incluir la conexión a la base de datos
 include 'db.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    error_log("Formulario recibido.");
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("📨 Formulario recibido");
 
-    // Recibir los datos del formulario
-    $fecha = $_POST['fecha'];
-    $denominacion = $_POST['denominacion'];
-    $domicilio = $_POST['domicilio'];
-    $identificacion = $_POST['identificacion'];
-    $nombre = $_POST['nombre'];
-    $lugarnot = $_POST['lugarnot'];
-    $notario = $_POST['notario'];
-    $numprotocolo = $_POST['numprotocolo'];
+    // Validar y recoger datos del formulario
+    $campos = ['fecha', 'denominacion', 'domicilio', 'identificacion', 'nombre', 'lugarnot', 'notario', 'numprotocolo', 'plantilla'];
+    foreach ($campos as $campo) {
+        if (!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
+            error_log("❌ Campo vacío: $campo");
+            echo json_encode(["error" => "Campo requerido no proporcionado: $campo"]);
+            exit;
+        }
+    }
 
-    error_log("Datos del formulario recibidos: " . json_encode($_POST));
+    $fecha         = $_POST['fecha'];
+    $denominacion  = $_POST['denominacion'];
+    $domicilio     = $_POST['domicilio'];
+    $identificacion= $_POST['identificacion'];
+    $nombre        = $_POST['nombre'];
+    $lugarnot      = $_POST['lugarnot'];
+    $notario       = $_POST['notario'];
+    $numprotocolo  = $_POST['numprotocolo'];
+    $ruta_plantilla= $_POST['plantilla'];
 
-    // Ruta del archivo .md de plantilla
-    $md_file = 'plantillas_contratos/prestacion_servicios/plantilla01.md';
-    if (!file_exists($md_file)) {
-        error_log("El archivo plantilla .md no existe: $md_file");
-        echo json_encode(["error" => "El archivo plantilla no existe"]);
+    error_log("📝 Datos recibidos: " . json_encode($_POST));
+
+    // Verificar si el archivo de plantilla existe
+    if (!file_exists($ruta_plantilla)) {
+        error_log("❌ Plantilla no encontrada: $ruta_plantilla");
+        echo json_encode(["error" => "La plantilla no existe"]);
         exit;
     }
 
-    // Leer el contenido del archivo .md
-    $contenido = file_get_contents($md_file);
-    error_log("Contenido del archivo .md cargado.");
+    // Leer la plantilla principal
+    $contenido = file_get_contents($ruta_plantilla);
 
-    // Reemplazar variables
-    $contenido = str_replace('{{fecha}}', $fecha, $contenido);
-    $contenido = str_replace('{{denominacion}}', $denominacion, $contenido);
-    $contenido = str_replace('{{domicilio}}', $domicilio, $contenido);
-    $contenido = str_replace('{{identificacion}}', $identificacion, $contenido);
-    $contenido = str_replace('{{apoderado}}', $nombre, $contenido);
-    $contenido = str_replace('{{lugarnot}}', $lugarnot, $contenido);
-    $contenido = str_replace('{{notario}}', $notario, $contenido);
-    $contenido = str_replace('{{numprotocolo}}', $numprotocolo, $contenido);
-    error_log("Variables reemplazadas.");
+    // Reemplazar los placeholders
+    $reemplazos = [
+        '{{fecha}}'         => $fecha,
+        '{{denominacion}}'  => $denominacion,
+        '{{domicilio}}'     => $domicilio,
+        '{{identificacion}}'=> $identificacion,
+        '{{apoderado}}'     => $nombre,
+        '{{lugarnot}}'      => $lugarnot,
+        '{{notario}}'       => $notario,
+        '{{numprotocolo}}'  => $numprotocolo
+    ];
+    $contenido = strtr($contenido, $reemplazos);
 
-    // Crear archivo temporal .md
-    $working_dir = '/tmp';
-    $temp_md_file = $working_dir . '/temp_contrato.md';
-    if (!is_writable($working_dir)) {
-        error_log("No se puede escribir en $working_dir");
-        echo json_encode(["error" => "No se puede escribir en el directorio temporal"]);
+    // Leer plantilla de firma y aplicar los mismos reemplazos
+    $firma_path = __DIR__ . '/firma.md';
+    if (!file_exists($firma_path)) {
+        error_log("❌ Plantilla de firma no encontrada");
+        echo json_encode(["error" => "No se encontró la plantilla de firma"]);
+        exit;
+    }
+    $firma_md = file_get_contents($firma_path);
+    $firma_md = strtr($firma_md, $reemplazos);
+
+    // Añadir firma en nueva página
+    $contenido_final = $contenido . "\n\n\\newpage\n\n" . $firma_md;
+
+    // Crear archivo temporal
+    $tmp_dir = sys_get_temp_dir();
+    $temp_md = $tmp_dir . '/contrato_' . uniqid() . '.md';
+    if (!file_put_contents($temp_md, $contenido_final)) {
+        error_log("❌ No se pudo escribir el archivo temporal");
+        echo json_encode(["error" => "No se pudo generar el archivo temporal"]);
         exit;
     }
 
-    if (!file_put_contents($temp_md_file, $contenido)) {
-        error_log("No se pudo crear el archivo .md temporal.");
-        echo json_encode(["error" => "Error al crear el archivo .md"]);
-        exit;
-    }
-
-    // Copiar imagen a /tmp
+    // Copiar imagen (si aplica)
     $img_src = 'plantillas_contratos/prestacion_servicios/tabladatos.png';
-    $img_dest = $working_dir . '/tabladatos.png';
-    if (!copy($img_src, $img_dest)) {
-        error_log("No se pudo copiar la imagen tabladatos.png a /tmp");
-        echo json_encode(["error" => "No se pudo preparar la imagen para el PDF"]);
+    $img_dest = $tmp_dir . '/tabladatos.png';
+    @copy($img_src, $img_dest);
+
+    // Generar PDF
+    $filename_pdf = 'contrato_' . strtolower(preg_replace('/\s+/', '_', $denominacion)) . '_' . date('YmdHis') . '.pdf';
+    $ruta_pdf_temp = $tmp_dir . '/' . $filename_pdf;
+    $ruta_pdf_final = 'pendientes_firma/' . $filename_pdf;
+
+    $template_tex = __DIR__ . '/plantillas_contratos/prestacion_servicios/pandoc_header.tex';
+    $cmd = "cd $tmp_dir && pandoc " . escapeshellarg($temp_md) . " -o " . escapeshellarg($ruta_pdf_temp) . " --from markdown --template=" . escapeshellarg($template_tex) . " --pdf-engine=xelatex";
+
+    exec($cmd . " 2>&1", $salida, $estado);
+    error_log("📦 Comando ejecutado: $cmd");
+    error_log("📄 Pandoc salida: " . implode("\n", $salida));
+    error_log("📌 Estado: $estado");
+
+    if ($estado !== 0 || !file_exists($ruta_pdf_temp)) {
+        error_log("❌ Error al generar PDF con Pandoc");
+        echo json_encode(["error" => "Error al generar el PDF"]);
         exit;
     }
 
-    // Generar nombre para el PDF
-    $filename_pdf = 'contrato_' . strtolower(str_replace(' ', '_', $denominacion)) . '_' . date('YmdHis') . '.pdf';
-    $intermediate_pdf = $working_dir . '/' . $filename_pdf;
-    $final_pdf = 'pendientes_firma/' . $filename_pdf;
-
-    // Verificar que el directorio final es escribible
-    if (!is_writable('pendientes_firma')) {
-        error_log("El directorio pendientes_firma no tiene permisos de escritura.");
-        echo json_encode(["error" => "El directorio pendientes_firma no es escribible"]);
+    // Mover PDF a la carpeta final
+    if (!rename($ruta_pdf_temp, $ruta_pdf_final)) {
+        error_log("❌ No se pudo mover el PDF final");
+        echo json_encode(["error" => "Error al mover el PDF generado"]);
         exit;
     }
 
-    // Ejecutar Pandoc
-    $template_path = __DIR__ . '/plantillas_contratos/prestacion_servicios/pandoc_header.tex';
-    $cmd = "cd $working_dir && pandoc temp_contrato.md -o " . basename($intermediate_pdf) . 
-           " --from markdown --template=$template_path --pdf-engine=xelatex";
+    // Eliminar temporal
+    unlink($temp_md);
 
-    exec($cmd . " 2>&1", $output, $status);
-    error_log("Comando ejecutado: $cmd");
-    error_log("Salida Pandoc: " . implode("\n", $output));
-    error_log("Estado Pandoc: $status");
-
-    if ($status !== 0 || !file_exists($intermediate_pdf)) {
-        error_log("Error al generar el PDF con Pandoc.");
-        echo json_encode(["error" => "No se pudo generar el PDF"]);
-        exit;
-    }
-
-    // Mover PDF generado a carpeta final
-    if (!rename($intermediate_pdf, $final_pdf)) {
-        error_log("No se pudo mover el PDF a pendientes_firma.");
-        echo json_encode(["error" => "No se pudo mover el archivo generado"]);
-        exit;
-    }
-
-    // Eliminar temporal .md
-    unlink($temp_md_file);
-
-    // Guardar en la base de datos
+    // Guardar en base de datos
     try {
-        $sql = "INSERT INTO contratos (nombre, ruta_pdf, firmado) VALUES (:nombre, :ruta_pdf, :firmado)";
+        $sql = "INSERT INTO contratos (nombre, ruta_pdf, firmado) VALUES (:nombre, :ruta_pdf, 0)";
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':nombre', $denominacion);
-        $stmt->bindParam(':ruta_pdf', $final_pdf);
-        $stmt->bindValue(':firmado', 0, PDO::PARAM_INT);
-        $stmt->execute();
-        error_log("Contrato guardado en la base de datos.");
-        $lastInsertId = $pdo->lastInsertId();
-        
-        // Concatenar el nombre del archivo PDF y el ID del contrato
-        $concat_str = $filename_pdf . $lastInsertId;
+        $stmt->execute([
+            ':nombre'   => $denominacion,
+            ':ruta_pdf' => $ruta_pdf_final
+        ]);
+        $id_contrato = $pdo->lastInsertId();
+        $hash = md5($filename_pdf . $id_contrato);
 
-        
-        $file_hash = md5($concat_str);
-        header("Location: previsualizar_contrato.html?pdf_path=" . urlencode($final_pdf) . "&id_contrato=" . $lastInsertId . "&file_hash=" . $file_hash);
+        // Redirigir a la previsualización
+        header("Location: previsualizar_contrato.html?pdf_path=" . urlencode($ruta_pdf_final) . "&id_contrato=$id_contrato&file_hash=$hash");
         exit;
     } catch (PDOException $e) {
-        error_log("Error al guardar en la base de datos: " . $e->getMessage());
+        error_log("❌ DB Error: " . $e->getMessage());
         echo json_encode(["error" => "Error al guardar el contrato en la base de datos"]);
         exit;
     }
