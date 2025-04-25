@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Generar Contrato</title>
@@ -11,19 +12,22 @@
       background-color: #f5f5f5;
       font-family: 'Montserrat', sans-serif;
     }
+
     .form-container {
       max-width: 600px;
       margin: 3rem auto;
       padding: 2.5rem;
       background-color: white;
       border-radius: 12px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.1);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
     }
+
     .form-logo {
       max-width: 275px;
       margin: 0 auto 1rem;
       display: block;
     }
+
     .form-title {
       text-align: center;
       margin-bottom: 2rem;
@@ -37,142 +41,233 @@
     }
 
     #generarcontrato:hover {
-      background-color: #7a1216; /* un poco más oscuro al hacer hover */
+      background-color: #7a1216;
+      /* un poco más oscuro al hacer hover */
       border-color: #7a1216;
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="form-container">
-    <!-- Logotipo centrado -->
-    <img src="atalaya.jpg" alt="Logo" class="form-logo">
-    <form action="generar_contrato.php" method="POST" id="formulario">
-      <!-- Alertas -->
-      <div class="alert alert-success d-none" role="alert">
-        <span class="alert-text"></span>
-      </div>
-      <div class="alert alert-warning d-none" role="alert">
-        <span class="alert-text"></span>
-      </div>
+  <div class="container">
+    <div class="form-container">
+      <!-- Logotipo centrado -->
+      <img src="atalaya.jpg" alt="Logo" class="form-logo">
+      <form action="generar_contrato.php" method="POST" id="formulario">
+        <!-- Alertas -->
+        <div class="alert alert-success d-none" role="alert">
+          <span class="alert-text"></span>
+        </div>
+        <div class="alert alert-warning d-none" role="alert">
+          <span class="alert-text"></span>
+        </div>
 
-      <div class="mb-3">
-        <label for="plantilla" class="form-label">Plantilla de Contrato</label>
-        <select id="plantilla" name="plantilla" class="form-select" required>
-          <option value="">Cargando plantillas...</option>
-        </select>
-      </div>
-      <input type="hidden" name="ruta_plantilla" id="ruta_plantilla">
-      
+        <div class="mb-3">
+          <label for="plantilla" class="form-label">Plantilla de Contrato</label>
+          <select id="plantilla" name="plantilla" class="form-select" required>
+            <option value="">Cargando plantillas...</option>
+          </select>
+        </div>
+        <input type="hidden" name="ruta_plantilla" id="ruta_plantilla">
 
-      <div class="mb-3">
-        <label for="calendario" class="form-label">Fecha del contrato</label>
-        <input type="text" class="form-control" id="calendario" name="fecha" placeholder="Selecciona una fecha">
-      </div>
-      <div class="mb-3">
-        <label for="denominacion" class="form-label">Denominación Social</label>
-        <input type="text" id="denominacion" class="form-control" name="denominacion">
-      </div>
-      <div class="mb-3">
-        <label for="domicilio" class="form-label">Domicilio Fiscal</label>
-        <input type="text" id="domicilio" class="form-control" name="domicilio">
-      </div>
-      <div class="mb-3">
-        <label for="dni" class="form-label">Identificación Fiscal</label>
-        <input type="text" id="dni" class="form-control" name="identificacion">
-      </div>
-      <div class="mb-3">
-        <label for="nombre" class="form-label">Nombre del Apoderado</label>
-        <input type="text" id="nombre" class="form-control" name="nombre">
-      </div>
-      <div class="mb-3">
-        <label for="lugarnot" class="form-label">Lugar de la Notaría</label>
-        <input type="text" id="lugarnot" class="form-control" name="lugarnot">
-      </div>
-      <div class="mb-3">
-        <label for="notario" class="form-label">Notario</label>
-        <input type="text" id="notario" class="form-control" name="notario">
-      </div>
-      <div class="mb-4">
-        <label for="numprotocolo" class="form-label">Número de Protocolo</label>
-        <input type="text" id="numprotocolo" class="form-control" name="numprotocolo">
-      </div>
-      <!-- Botones -->
-      <div class="d-grid gap-2">
-        <button type="submit" class="btn" id="generarcontrato">Generar Contrato</button>
-        <button type="button" class="btn btn-outline-secondary" id="rellenarCampos">Rellenar Prueba</button>
-      </div>
-    </form>
+        <!-- Los campos se mostrarán/ocultarán dinámicamente según la plantilla seleccionada -->
+        <div class="mb-3" id="calendario-container">
+          <label for="calendario" class="form-label">Fecha del contrato</label>
+          <input type="text" class="form-control" id="calendario" name="fecha" placeholder="Selecciona una fecha">
+        </div>
+        <div class="mb-3" id="denominacion-container">
+          <label for="denominacion" class="form-label">Denominación Social</label>
+          <input type="text" id="denominacion" class="form-control" name="denominacion">
+        </div>
+        <div class="mb-3" id="domicilio-container">
+          <label for="domicilio" class="form-label">Domicilio Fiscal</label>
+          <input type="text" id="domicilio" class="form-control" name="domicilio">
+        </div>
+        <div class="mb-3" id="dni-container">
+          <label for="dni" class="form-label">Identificación Fiscal</label>
+          <input type="text" id="dni" class="form-control" name="identificacion">
+        </div>
+        <div class="mb-3" id="nombre-container">
+          <label for="nombre" class="form-label">Nombre del Apoderado</label>
+          <input type="text" id="nombre" class="form-control" name="nombre">
+        </div>
+        <div class="mb-3" id="lugarnot-container">
+          <label for="lugarnot" class="form-label">Lugar de la Notaría</label>
+          <input type="text" id="lugarnot" class="form-control" name="lugarnot">
+        </div>
+        <div class="mb-3" id="notario-container">
+          <label for="notario" class="form-label">Notario</label>
+          <input type="text" id="notario" class="form-control" name="notario">
+        </div>
+        <div class="mb-4" id="numprotocolo-container">
+          <label for="numprotocolo" class="form-label">Número de Protocolo</label>
+          <input type="text" id="numprotocolo" class="form-control" name="numprotocolo">
+        </div>
+        <!-- Botones -->
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn" id="generarcontrato">Generar Contrato</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-<script
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+  <script
     src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="script.js"></script>
-<script src="config.js"></script>
-<script
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="script.js"></script>
+  <script src="config.js"></script>
+  <script
     src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
 
-<script>
-  // Script para rellenar los campos con datos ficticios
-  document.getElementById('rellenarCampos').addEventListener('click', () => {
-    document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
-    document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
-    document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
-    document.getElementById('dni').value = 'A12345678'; // DNI ficticio
-    document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
-    document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
-    document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
-    document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
-  });
+  <script>
+   document.addEventListener("DOMContentLoaded", function () {
+  const select = document.getElementById('plantilla');
+  const formFields = {
+    calendario: document.getElementById('calendario-container'),
+    denominacion: document.getElementById('denominacion-container'),
+    domicilio: document.getElementById('domicilio-container'),
+    dni: document.getElementById('dni-container'),
+    nombre: document.getElementById('nombre-container'),
+    lugarnot: document.getElementById('lugarnot-container'),
+    notario: document.getElementById('notario-container'),
+    numprotocolo: document.getElementById('numprotocolo-container')
+  };
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const botonFormulario = document.getElementById("rellenarCampos");
+  // Mapeo entre el id de la base de datos y el id del campo
+  const idMapping = {
+    1: 'calendario',
+    2: 'denominacion',
+    3: 'domicilio',
+    4: 'dni',
+    5: 'nombre',
+    6: 'lugarnot',
+    7: 'notario',
+    8: 'numprotocolo'
+  };
 
-    if (CONFIG.mostrarFormulario === 1) {
-        botonFormulario.style.display = "inline-block"; // o "block"
-    } else {
-        botonFormulario.style.display = "none";
+  // Función para mostrar todos los campos en el orden correcto
+  function mostrarTodosCampos() {
+    const camposOrdenados = [
+      'calendario',
+      'denominacion',
+      'domicilio',
+      'dni',
+      'nombre',
+      'lugarnot',
+      'notario',
+      'numprotocolo'
+    ];
+
+    // Limpiar el formulario antes de mostrar todos los campos
+    limpiarFormulario();
+
+    // Mostrar todos los campos en el orden correcto
+    camposOrdenados.forEach(field => {
+      formFields[field].style.display = 'block';
+      const form = document.getElementById('formulario');
+      const botones = form.querySelector('.d-grid');
+      form.insertBefore(formFields[field], botones); // Asegura que se agreguen en el orden correcto
+    });
+  }
+
+  // Función para ocultar todos los campos
+  function ocultarTodosCampos() {
+    for (let field in formFields) {
+      formFields[field].style.display = 'none';
+    }
+  }
+
+  // Función para limpiar el formulario de campos insertados sin tocar el contenedor del select
+  function limpiarFormulario() {
+    const form = document.getElementById('formulario');
+    const botones = form.querySelector('.d-grid');
+    const selectContainer = document.getElementById('plantilla').parentElement; // Contenedor del select
+
+    // Quitar todos los elementos antes de volver a insertar, pero sin tocar el contenedor del select
+    let child = form.firstChild;
+
+    // Asegúrate de no eliminar el contenedor del select ni los botones
+    while (child !== botones && child !== selectContainer) {
+      const nextSibling = child.nextSibling;
+      form.removeChild(child);
+      child = nextSibling;
     }
 
-    const select = document.getElementById('plantilla');
+    // Asegurarse de que el contenedor del select se inserte de nuevo en la primera posición
+    form.insertBefore(selectContainer, botones); // Esto asegura que el contenedor del select esté antes de los botones
+  }
 
-    // Cargar las plantillas desde el servidor
-    fetch('cargar_plantillas.php')
+  // Cargar las plantillas desde el servidor
+  fetch('cargar_plantillas.php')
+    .then(response => response.json())
+    .then(data => {
+      select.innerHTML = '<option value="">Selecciona una plantilla...</option>';
+      data.forEach(plantilla => {
+        const option = document.createElement('option');
+        option.value = plantilla.id;
+        option.textContent = plantilla.nombre;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Error al cargar plantillas:', error);
+      select.innerHTML = '<option value="">Error al cargar</option>';
+    });
+
+  // Mostrar/ocultar campos según la plantilla seleccionada
+  select.addEventListener('change', function () {
+    const plantillaId = select.value;
+
+    if (!plantillaId || plantillaId === 'undefined') {
+      return;
+    }
+
+    ocultarTodosCampos();
+
+    fetch(`obtener_campos_plantilla.php?id_plantilla=${plantillaId}`)
       .then(response => response.json())
       .then(data => {
-        select.innerHTML = '<option value="">Selecciona una plantilla...</option>';
-        data.forEach(plantilla => {
-          const option = document.createElement('option');
-          option.value = plantilla.ruta; // Usamos la ruta como valor
-          option.textContent = plantilla.nombre;
-          select.appendChild(option);
+        const form = document.getElementById('formulario');
+        const botones = form.querySelector('.d-grid');
+
+        // Si no hay datos o el servidor indica mostrar todo
+        if (!Array.isArray(data) || data.length === 0 || data.mostrar_todo) {
+          mostrarTodosCampos();
+          return;
+        }
+
+        // Ordenar los campos según la columna 'orden'
+        const camposOrdenados = data.sort((a, b) => a.orden - b.orden);
+
+        // Limpiar el formulario antes de mostrar los campos ordenados
+        limpiarFormulario();
+
+        // Luego mostramos los campos ordenados en el orden especificado
+        camposOrdenados.forEach(campo => {
+          const fieldName = idMapping[campo.id];
+          const fieldElement = formFields[fieldName];
+          if (fieldElement) {
+            fieldElement.style.display = 'block';
+            form.insertBefore(fieldElement, botones); // Asegura que se agreguen en el orden correcto
+          }
         });
       })
       .catch(error => {
-        console.error('Error al cargar plantillas:', error);
-        select.innerHTML = '<option value="">Error al cargar</option>';
+        console.error('Error al obtener campos:', error);
+        mostrarTodosCampos();
       });
-
-    const formulario = document.getElementById('formulario');
-    formulario.addEventListener('submit', function (e) {
-      const rutaPlantilla = select.value;
-      if (!rutaPlantilla) {
-        e.preventDefault();  // Evitar el envío si no se selecciona una plantilla
-        alert('Por favor, selecciona una plantilla.');
-        return;
-      }
-      document.getElementById('ruta_plantilla').value = rutaPlantilla;
-    });
   });
-</script>
+});
+  </script>
+
+
 
 </body>
+
 </html>

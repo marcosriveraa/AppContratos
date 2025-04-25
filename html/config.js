@@ -1,4 +1,4 @@
 // config.js
 const CONFIG = {
-    mostrarFormulario: 1  // Cambia a 0 para ocultar el botón
+    mostrarFormulario: 0  // Cambia a 0 para ocultar el botón
 };

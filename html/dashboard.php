@@ -283,6 +283,7 @@ main h1 {
           <th>#</th>
           <th>Contrato</th>
           <th>Acciones</th>
+          <th>Campos</th>
         </tr>
       </thead>
       <tbody>
@@ -315,6 +316,32 @@ main h1 {
     </form>
   </div>
 </div>
+
+<!-- Modal para definir orden de campos -->
+<div class="modal fade" id="modalOrdenCampos" tabindex="-1" aria-labelledby="modalOrdenCamposLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalOrdenCamposLabel">Definir Orden de Campos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formOrdenCampos">
+          <div id="contenedorCamposOrden" class="row g-3">
+            <!-- Aquí se cargarán dinámicamente los campos -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarOrdenCampos()">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
         </main>
     </div>
 </div>
@@ -628,7 +655,8 @@ function cargarPlantilla() {
                 table.row.add([
                     plantilla.id,
                     plantilla.nombre,
-                    `<button class="btn btn-sm btn-primary" onclick="editarPlantilla(${plantilla.id})">Editar</button>`
+                    `<button class="btn btn-sm btn-primary" onclick="editarPlantilla(${plantilla.id})">Editar</button>`,
+                    `<button class="btn btn-sm btn-secondary" onclick="definirOrdenCampos(${plantilla.id})">Definir orden de campos</button>`
                 ]).draw(false);
             });
             console.log(data);
@@ -672,6 +700,105 @@ function editarPlantilla(id) {
         .catch(error => console.error("Error al redirigir al editor:", error));
     })
     .catch(error => console.error("Error al obtener la ruta de la plantilla:", error));
+}
+
+function definirOrdenCampos(idPlantilla) {
+    fetch('obtener_campos.php?idPlantilla=' + idPlantilla)
+        .then(response => response.text())
+        .then(texto => {
+            console.log("Respuesta bruta del servidor:", texto);
+
+            try {
+                const json = JSON.parse(texto);
+                console.log("JSON parseado correctamente:", json);
+                return json;
+            } catch (e) {
+                console.error("❌ Error al parsear JSON:", e);
+                throw new Error("Respuesta no válida del servidor.");
+            }
+        })
+        .then(campos => {
+            const contenedor = document.getElementById("contenedorCamposOrden");
+            contenedor.innerHTML = ""; // Limpiar antes de añadir
+
+            // Agregar campo oculto con el id de la plantilla
+            const form = document.getElementById("formOrdenCampos");
+            let inputIdPlantilla = document.getElementById("id_plantilla_orden");
+
+            if (!inputIdPlantilla) {
+                inputIdPlantilla = document.createElement("input");
+                inputIdPlantilla.type = "hidden";
+                inputIdPlantilla.name = "id_plantilla";
+                inputIdPlantilla.id = "id_plantilla_orden";
+                form.appendChild(inputIdPlantilla);
+            }
+
+            inputIdPlantilla.value = idPlantilla;
+
+            campos.forEach((campo) => {
+                const div = document.createElement("div");
+                div.className = "col-md-6 d-flex align-items-center mb-2";
+
+                const ordenValue = campo.orden !== null ? campo.orden : "";
+
+                div.innerHTML = `
+                    <label class="form-label me-3 flex-shrink-0" style="min-width: 150px;">${campo.nombre}</label>
+                    <input type="hidden" name="id_campo[]" value="${campo.id_campo}">
+                    <input type="number" name="orden[]" class="form-control" value="${ordenValue}" min="1" placeholder="Sin orden">
+                `;
+
+                contenedor.appendChild(div);
+            });
+
+            // Abrir el modal
+            const modal = new bootstrap.Modal(document.getElementById('modalOrdenCampos'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error("⚠️ Error al obtener campos:", error);
+            alert("No se pudieron cargar los campos.");
+        });
+}
+
+
+
+
+function guardarOrdenCampos() {
+    const form = document.getElementById('formOrdenCampos');
+    const formData = new FormData(form);
+
+    // Asegúrate de tener el id_plantilla cargado en el formulario
+    if (!formData.has('id_plantilla')) {
+        const idPlantilla = document.getElementById('id_plantilla_orden')?.value;
+        if (idPlantilla) {
+            formData.append('id_plantilla', idPlantilla);
+        } else {
+            alert("⚠️ No se encontró el ID de la plantilla.");
+            return;
+        }
+    }
+
+    fetch('guardar_orden.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Orden guardado correctamente.');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalOrdenCampos'));
+            modal.hide();
+
+            // Opcional: refrescar vista o tabla si lo deseas
+            // actualizarTabla(); 
+        } else {
+            alert('❌ Error al guardar: ' + (data.message || ''));
+        }
+    })
+    .catch(err => {
+        console.error('❌ Error al guardar:', err);
+        alert('Error inesperado al guardar.');
+    });
 }
 
 </script>
