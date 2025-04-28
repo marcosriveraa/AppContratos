@@ -125,149 +125,168 @@
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
 
-  <script>
-   document.addEventListener("DOMContentLoaded", function () {
-  const select = document.getElementById('plantilla');
-  const formFields = {
-    calendario: document.getElementById('calendario-container'),
-    denominacion: document.getElementById('denominacion-container'),
-    domicilio: document.getElementById('domicilio-container'),
-    dni: document.getElementById('dni-container'),
-    nombre: document.getElementById('nombre-container'),
-    lugarnot: document.getElementById('lugarnot-container'),
-    notario: document.getElementById('notario-container'),
-    numprotocolo: document.getElementById('numprotocolo-container')
-  };
-
-  // Mapeo entre el id de la base de datos y el id del campo
-  const idMapping = {
-    1: 'calendario',
-    2: 'denominacion',
-    3: 'domicilio',
-    4: 'dni',
-    5: 'nombre',
-    6: 'lugarnot',
-    7: 'notario',
-    8: 'numprotocolo'
-  };
-
-  // Función para mostrar todos los campos en el orden correcto
-  function mostrarTodosCampos() {
-    const camposOrdenados = [
-      'calendario',
-      'denominacion',
-      'domicilio',
-      'dni',
-      'nombre',
-      'lugarnot',
-      'notario',
-      'numprotocolo'
-    ];
-
-    // Limpiar el formulario antes de mostrar todos los campos
-    limpiarFormulario();
-
-    // Mostrar todos los campos en el orden correcto
-    camposOrdenados.forEach(field => {
-      formFields[field].style.display = 'block';
-      const form = document.getElementById('formulario');
-      const botones = form.querySelector('.d-grid');
-      form.insertBefore(formFields[field], botones); // Asegura que se agreguen en el orden correcto
-    });
-  }
-
-  // Función para ocultar todos los campos
-  function ocultarTodosCampos() {
-    for (let field in formFields) {
-      formFields[field].style.display = 'none';
-    }
-  }
-
-  // Función para limpiar el formulario de campos insertados sin tocar el contenedor del select
-  function limpiarFormulario() {
-    const form = document.getElementById('formulario');
-    const botones = form.querySelector('.d-grid');
-    const selectContainer = document.getElementById('plantilla').parentElement; // Contenedor del select
-
-    // Quitar todos los elementos antes de volver a insertar, pero sin tocar el contenedor del select
-    let child = form.firstChild;
-
-    // Asegúrate de no eliminar el contenedor del select ni los botones
-    while (child !== botones && child !== selectContainer) {
-      const nextSibling = child.nextSibling;
-      form.removeChild(child);
-      child = nextSibling;
-    }
-
-    // Asegurarse de que el contenedor del select se inserte de nuevo en la primera posición
-    form.insertBefore(selectContainer, botones); // Esto asegura que el contenedor del select esté antes de los botones
-  }
-
-  // Cargar las plantillas desde el servidor
-  fetch('cargar_plantillas.php')
-    .then(response => response.json())
-    .then(data => {
-      select.innerHTML = '<option value="">Selecciona una plantilla...</option>';
-      data.forEach(plantilla => {
-        const option = document.createElement('option');
-        option.value = plantilla.id;
-        option.textContent = plantilla.nombre;
-        select.appendChild(option);
-      });
-    })
-    .catch(error => {
-      console.error('Error al cargar plantillas:', error);
-      select.innerHTML = '<option value="">Error al cargar</option>';
-    });
-
-  // Mostrar/ocultar campos según la plantilla seleccionada
-  select.addEventListener('change', function () {
-    const plantillaId = select.value;
-
-    if (!plantillaId || plantillaId === 'undefined') {
-      return;
-    }
-
-    ocultarTodosCampos();
-
-    fetch(`obtener_campos_plantilla.php?id_plantilla=${plantillaId}`)
-      .then(response => response.json())
-      .then(data => {
-        const form = document.getElementById('formulario');
-        const botones = form.querySelector('.d-grid');
-
-        // Si no hay datos o el servidor indica mostrar todo
-        if (!Array.isArray(data) || data.length === 0 || data.mostrar_todo) {
-          mostrarTodosCampos();
-          return;
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const select = document.getElementById('plantilla');
+        const formFields = {
+          calendario: document.getElementById('calendario-container'),
+          denominacion: document.getElementById('denominacion-container'),
+          domicilio: document.getElementById('domicilio-container'),
+          dni: document.getElementById('dni-container'),
+          nombre: document.getElementById('nombre-container'),
+          lugarnot: document.getElementById('lugarnot-container'),
+          notario: document.getElementById('notario-container'),
+          numprotocolo: document.getElementById('numprotocolo-container')
+        };
+      
+        const idMapping = {
+          1: 'calendario',
+          2: 'denominacion',
+          3: 'domicilio',
+          4: 'dni',
+          5: 'nombre',
+          6: 'lugarnot',
+          7: 'notario',
+          8: 'numprotocolo'
+        };
+      
+        function mostrarTodosCampos() {
+          const camposOrdenados = [
+            'calendario',
+            'denominacion',
+            'domicilio',
+            'dni',
+            'nombre',
+            'lugarnot',
+            'notario',
+            'numprotocolo'
+          ];
+          limpiarFormulario();
+          camposOrdenados.forEach(field => {
+            formFields[field].style.display = 'block';
+            const form = document.getElementById('formulario');
+            const botones = form.querySelector('.d-grid');
+            form.insertBefore(formFields[field], botones);
+          });
         }
-
-        // Ordenar los campos según la columna 'orden'
-        const camposOrdenados = data.sort((a, b) => a.orden - b.orden);
-
-        // Limpiar el formulario antes de mostrar los campos ordenados
-        limpiarFormulario();
-
-        // Luego mostramos los campos ordenados en el orden especificado
-        camposOrdenados.forEach(campo => {
-          const fieldName = idMapping[campo.id];
-          const fieldElement = formFields[fieldName];
-          if (fieldElement) {
-            fieldElement.style.display = 'block';
-            form.insertBefore(fieldElement, botones); // Asegura que se agreguen en el orden correcto
+      
+        function ocultarTodosCampos() {
+          for (let field in formFields) {
+            formFields[field].style.display = 'none';
           }
+        }
+      
+        function limpiarFormulario() {
+          const form = document.getElementById('formulario');
+          const botones = form.querySelector('.d-grid');
+          const selectContainer = document.getElementById('plantilla').parentElement;
+      
+          let child = form.firstChild;
+          while (child !== botones && child !== selectContainer) {
+            const nextSibling = child.nextSibling;
+            form.removeChild(child);
+            child = nextSibling;
+          }
+          form.insertBefore(selectContainer, botones);
+        }
+      
+        // 🔥 OCULTAR CAMPOS AL CARGAR
+        ocultarTodosCampos();
+      
+        fetch('cargar_plantillas.php')
+          .then(response => response.json())
+          .then(data => {
+            select.innerHTML = '<option value="">Selecciona una plantilla...</option>';
+            data.forEach(plantilla => {
+              const option = document.createElement('option');
+              option.value = plantilla.id;
+              option.textContent = plantilla.nombre;
+              select.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error al cargar plantillas:', error);
+            select.innerHTML = '<option value="">Error al cargar</option>';
+          });
+      
+        select.addEventListener('change', function () {
+          const plantillaId = select.value;
+      
+          if (!plantillaId || plantillaId === 'undefined') {
+            ocultarTodosCampos();
+            return;
+          }
+      
+          ocultarTodosCampos();
+      
+          fetch(`obtener_campos_plantilla.php?id_plantilla=${plantillaId}`)
+            .then(response => response.json())
+            .then(data => {
+              const form = document.getElementById('formulario');
+              const botones = form.querySelector('.d-grid');
+      
+              if (!Array.isArray(data) || data.length === 0 || data.mostrar_todo) {
+                mostrarTodosCampos();
+                return;
+              }
+      
+              const camposOrdenados = data.sort((a, b) => a.orden - b.orden);
+              limpiarFormulario();
+      
+              camposOrdenados.forEach(campo => {
+                const fieldName = idMapping[campo.id];
+                const fieldElement = formFields[fieldName];
+                if (fieldElement) {
+                  fieldElement.style.display = 'block';
+                  form.insertBefore(fieldElement, botones);
+                }
+              });
+            })
+            .catch(error => {
+              console.error('Error al obtener campos:', error);
+              mostrarTodosCampos();
+            });
         });
-      })
-      .catch(error => {
-        console.error('Error al obtener campos:', error);
-        mostrarTodosCampos();
       });
-  });
-});
-  </script>
-
-
-
+      </script>
 </body>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+    <script src="../config.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.es.min.js"></script>
+</body>
+<script>
+  // Script para rellenar los campos con datos ficticios
+  document.getElementById('rellenarCampos').addEventListener('click', () => {
+      document.getElementById('calendario').value = '01/01/2025'; // Fecha ficticia
+      document.getElementById('denominacion').value = 'Empresa Ficticia S.A.'; // Nombre ficticio
+      document.getElementById('domicilio').value = 'Calle Ficticia 123, Ciudad Ejemplo'; // Domicilio ficticio
+      document.getElementById('dni').value = 'A12345678'; // DNI ficticio
+      document.getElementById('nombre').value = 'Juan Pérez'; // Nombre apoderado ficticio
+      document.getElementById('lugarnot').value = 'Madrid'; // Lugar ficticio
+      document.getElementById('notario').value = 'Notario Ficticio'; // Nombre notario ficticio
+      document.getElementById('numprotocolo').value = '12345'; // Número de protocolo ficticio
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const botonFormulario = document.getElementById("rellenarCampos");
+
+    if (CONFIG.mostrarFormulario === 1) {
+        botonFormulario.style.display = "inline-block"; // o "block"
+    } else {
+        botonFormulario.style.display = "none";
+    }
+});
+
+</script>
 
 </html>

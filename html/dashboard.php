@@ -113,6 +113,36 @@ main {
     transition: margin-left 0.3s ease; /* Transición suave en la parte principal */
 }
 
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.5em 1em;
+    margin-left: 4px;
+    margin-right: 4px;
+    background-color: #007bff;
+    color: white !important;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 10px;
+    text-align: center;
+}
+
 main h1 {
     font-size: 2rem;
     color: #333;
@@ -356,115 +386,31 @@ main h1 {
 <script>
 
 $(document).ready(function() {
-        $('#contractsTable').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros por página",
-                "zeroRecords": "No se encontraron registros",
-                "info": "Mostrando página _PAGE_ de _PAGES_",
-                "infoEmpty": "No hay registros disponibles",
-                "infoFiltered": "(filtrado de _MAX_ registros en total)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "Primero",
-                    "previous": "Anterior",
-                    "next": "Siguiente",
-                    "last": "Último"
-                }
-            },
-            "drawCallback": function(settings) {
-                var api = this.api();
-                var info = api.page.info();
-                
-                // Deshabilitar el botón "Anterior" si estamos en la primera página
-                if (info.page === 0) {
-                    $('.paginate_button.previous').addClass('disabled');
-                } else {
-                    $('.paginate_button.previous').removeClass('disabled');
-                }
-
-                // Deshabilitar el botón "Siguiente" si estamos en la última página
-                if (info.page === info.pages - 1) {
-                    $('.paginate_button.next').addClass('disabled');
-                } else {
-                    $('.paginate_button.next').removeClass('disabled');
-                }
+    const options = {
+        "language": {
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "zeroRecords": "No se encontraron registros",
+            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros en total)",
+            "search": "Buscar:",
+            "paginate": {
+                "first": "Primero",
+                "previous": "Anterior",
+                "next": "Siguiente",
+                "last": "Último"
             }
-        });
-    });
+        },
+        "order": [[0, "desc"]],  // Ojo: 'order' va FUERA de 'language'
+        "responsive": true,      // Opcional pero recomendado
+        "autoWidth": false        // Opcional para que no fije anchos raros
+    };
 
-    $(document).ready(function() {
-        $('#contractsTable2').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros por página",
-                "zeroRecords": "No se encontraron registros",
-                "info": "Mostrando página _PAGE_ de _PAGES_",
-                "infoEmpty": "No hay registros disponibles",
-                "infoFiltered": "(filtrado de _MAX_ registros en total)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "Primero",
-                    "previous": "Anterior",
-                    "next": "Siguiente",
-                    "last": "Último"
-                }
-            },
-            "drawCallback": function(settings) {
-                var api = this.api();
-                var info = api.page.info();
-                
-                // Deshabilitar el botón "Anterior" si estamos en la primera página
-                if (info.page === 0) {
-                    $('.paginate_button.previous').addClass('disabled');
-                } else {
-                    $('.paginate_button.previous').removeClass('disabled');
-                }
+    $('#contractsTable').DataTable(options);
+    $('#contractsTable2').DataTable(options);
+    $('#plantillastable').DataTable(options);
+});
 
-                // Deshabilitar el botón "Siguiente" si estamos en la última página
-                if (info.page === info.pages - 1) {
-                    $('.paginate_button.next').addClass('disabled');
-                } else {
-                    $('.paginate_button.next').removeClass('disabled');
-                }
-            }
-        });
-    });
-
-    $(document).ready(function() {
-        $('#plantillastable').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros por página",
-                "zeroRecords": "No se encontraron registros",
-                "info": "Mostrando página _PAGE_ de _PAGES_",
-                "infoEmpty": "No hay registros disponibles",
-                "infoFiltered": "(filtrado de _MAX_ registros en total)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "Primero",
-                    "previous": "Anterior",
-                    "next": "Siguiente",
-                    "last": "Último"
-                }
-            },
-            "drawCallback": function(settings) {
-                var api = this.api();
-                var info = api.page.info();
-                
-                // Deshabilitar el botón "Anterior" si estamos en la primera página
-                if (info.page === 0) {
-                    $('.paginate_button.previous').addClass('disabled');
-                } else {
-                    $('.paginate_button.previous').removeClass('disabled');
-                }
-
-                // Deshabilitar el botón "Siguiente" si estamos en la última página
-                if (info.page === info.pages - 1) {
-                    $('.paginate_button.next').addClass('disabled');
-                } else {
-                    $('.paginate_button.next').removeClass('disabled');
-                }
-            }
-        });
-    });
     document.addEventListener("DOMContentLoaded", function () {
     const btnContratosFirmados = document.getElementById('contratosfirmados');
     const btnContratosPorFirmar = document.getElementById('contratosporfirmar');
