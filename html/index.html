@@ -206,7 +206,7 @@
           })
           .catch(error => {
             console.error('Error al cargar plantillas:', error);
-            select.innerHTML = '<option value="">Error al cargar</option>';
+            select.innerHTML = '<option value="">No se a encontrado ninguna plantilla</option>';
           });
       
         select.addEventListener('change', function () {
