@@ -2,26 +2,22 @@ CREATE DATABASE IF NOT EXISTS contratos;
 USE contratos;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
 SET time_zone = "+00:00";
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
--- --------------------------------------------------------
-
--- Estructura de tabla para la tabla `contratos`
-CREATE TABLE `contratos` (
-  `id` int NOT NULL,
+-- Tabla contratos
+CREATE TABLE IF NOT EXISTS `contratos` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) NOT NULL,
   `ruta_pdf` varchar(255) NOT NULL,
   `firmado` tinyint(1) DEFAULT '0',
-  `fecha_firma` timestamp NULL DEFAULT NULL
+  `fecha_firma` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Disparadores `contratos`
+-- Disparador para actualizar fecha_firma
+DROP TRIGGER IF EXISTS `fecha_firma_nueva`;
 DELIMITER $$
 CREATE TRIGGER `fecha_firma_nueva` BEFORE UPDATE ON `contratos` FOR EACH ROW BEGIN
     IF NEW.firmado = 1 AND OLD.firmado != 1 THEN
@@ -31,43 +27,60 @@ END
 $$
 DELIMITER ;
 
--- --------------------------------------------------------
-
--- Estructura de tabla para la tabla `usuario`
-CREATE TABLE `usuario` (
-  `id` int NOT NULL,
-  `correo` varchar(255) NOT NULL,
-  `usuario` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL
+-- Tabla usuario
+CREATE TABLE IF NOT EXISTS `usuario` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `correo` varchar(255) NOT NULL UNIQUE,
+  `usuario` varchar(50) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Volcado de datos para la tabla `usuario`
-INSERT INTO `usuario` (`id`, `correo`, `usuario`, `password`) VALUES
-(1, 'admin@admin.com', 'admin', '$2y$10$zp8O8llezb83hx5r0IGVF.uzuDTqMl58WaMoNkgRQbSbYIO2ZGVn2');
--- Insertar una plantilla
+-- Insertar usuario admin solo si no existe
+INSERT INTO `usuario` (`correo`, `usuario`, `password`)
+SELECT 'admin@admin.com', 'admin', '$2y$10$zp8O8llezb83hx5r0IGVF.uzuDTqMl58WaMoNkgRQbSbYIO2ZGVn2'
+WHERE NOT EXISTS (SELECT 1 FROM `usuario` WHERE `usuario` = 'admin');
+
+-- Tabla plantillas
+CREATE TABLE IF NOT EXISTS `plantillas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(255) NOT NULL UNIQUE,
+  `ruta` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabla campos
+CREATE TABLE IF NOT EXISTS `campos` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(50) NOT NULL UNIQUE,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabla campos_plantillas
+CREATE TABLE IF NOT EXISTS `campos_plantillas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `id_plantilla` INT NOT NULL,
+  `id_campo` INT NOT NULL,
+  `orden` INT DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_plantilla` (`id_plantilla`),
+  KEY `id_campo` (`id_campo`),
+  CONSTRAINT `fk_cp_plantilla` FOREIGN KEY (`id_plantilla`) REFERENCES `plantillas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cp_campo` FOREIGN KEY (`id_campo`) REFERENCES `campos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Insertar campos solo si no existen
+INSERT IGNORE INTO `campos` (`nombre`) VALUES 
+('Calendario'),
+('DenominaciÛn Social'),
+('Domicilio Fiscal'),
+('IdentificaciÛn Fiscal'),
+('Nombre Apoderado'),
+('Lugar Notaria'),
+('Notario'),
+('N˙mero Protocolo');
+
+-- Insertar plantilla solo si no existe
 INSERT INTO `plantillas` (`nombre`, `ruta`)
-SELECT 'Plantilla Marco', 'plantillas_contratos\prestacion_servicios\plantilla01.md'
-WHERE NOT EXISTS (
-    SELECT 1 FROM `plantillas` WHERE `nombre` = 'Plantilla Marco'
-);
--- √çndices para tablas volcadas
-ALTER TABLE `contratos`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `correo` (`correo`),
-  ADD UNIQUE KEY `usuario` (`usuario`);
-
--- AUTO_INCREMENT
-ALTER TABLE `contratos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
-
-ALTER TABLE `usuario`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+SELECT 'Plantilla Marco', 'plantillas_contratos/prestacion_servicios/plantilla01.md'
+WHERE NOT EXISTS (SELECT 1 FROM `plantillas` WHERE `nombre` = 'Plantilla Marco');
