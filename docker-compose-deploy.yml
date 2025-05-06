@@ -10,10 +10,10 @@ services:
       - db
     networks:
       atalayavps_network:
- 
+
   db:
-    image: mysql:8.0
-    container_name: mysql-container
+    image: mariadb:11.3
+    container_name: mariadb-container
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -29,7 +29,7 @@ services:
       - ./.env
     networks:
       atalayavps_network:
- 
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin-container
@@ -44,11 +44,11 @@ services:
       - "8082:80"
     networks:
       atalayavps_network:
- 
+
 networks:
   atalayavps_network:
     external: true
- 
+
 volumes:
   db_data:
     driver: local

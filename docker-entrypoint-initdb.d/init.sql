@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `contratos` (
   `firmado` tinyint(1) DEFAULT '0',
   `fecha_firma` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Disparador para actualizar fecha_firma
 DROP TRIGGER IF EXISTS `fecha_firma_nueva`;
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   `usuario` varchar(50) NOT NULL UNIQUE,
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Insertar usuario admin solo si no existe
 INSERT INTO `usuario` (`correo`, `usuario`, `password`)
@@ -47,14 +47,14 @@ CREATE TABLE IF NOT EXISTS `plantillas` (
   `nombre` VARCHAR(255) NOT NULL UNIQUE,
   `ruta` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Tabla campos
 CREATE TABLE IF NOT EXISTS `campos` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(50) NOT NULL UNIQUE,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Tabla campos_plantillas
 CREATE TABLE IF NOT EXISTS `campos_plantillas` (
@@ -67,18 +67,18 @@ CREATE TABLE IF NOT EXISTS `campos_plantillas` (
   KEY `id_campo` (`id_campo`),
   CONSTRAINT `fk_cp_plantilla` FOREIGN KEY (`id_plantilla`) REFERENCES `plantillas` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_cp_campo` FOREIGN KEY (`id_campo`) REFERENCES `campos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Insertar campos solo si no existen
 INSERT IGNORE INTO `campos` (`nombre`) VALUES 
 ('Calendario'),
-('Denominación Social'),
+('DenominaciÃ³n Social'),
 ('Domicilio Fiscal'),
-('Identificación Fiscal'),
+('IdentificaciÃ³n Fiscal'),
 ('Nombre Apoderado'),
 ('Lugar Notaria'),
 ('Notario'),
-('Número Protocolo');
+('NÃºmero Protocolo');
 
 -- Insertar plantilla solo si no existe
 INSERT INTO `plantillas` (`nombre`, `ruta`)
